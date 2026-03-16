@@ -322,8 +322,7 @@ export default function QuizClient() {
     return currentPage === questionGroups.length - 1;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setQuizState('submitting');
     
     // 格式化答案以发送到后端
@@ -409,7 +408,7 @@ export default function QuizClient() {
   const totalQuestions = quizData.length;
 
   return (
-    <form onSubmit={handleSubmit} className="animate-fade-in">
+    <div className="animate-fade-in">
       {/* 页面标题和进度 */}
       <div className="mb-8">
         {/* 分页指示器 */}
@@ -573,7 +572,8 @@ export default function QuizClient() {
         {/* 下一页或提交按钮 */}
         {isLastPage() ? (
           <button
-            type="submit"
+            type="button"
+            onClick={handleSubmit}
             disabled={quizState === 'submitting'}
             className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
           >
@@ -600,6 +600,6 @@ export default function QuizClient() {
           </button>
         )}
       </div>
-    </form>
+    </div>
   );
 }
