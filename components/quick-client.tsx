@@ -13,6 +13,9 @@ interface ResultData {
     questionNumber: number;
     question: string;
     correctAnswer: string;
+    userAnswer: string;
+    options?: string[];
+    questionType: string;
     explanation?: string;
   }[];
   shortAnswerFeedback: string;
@@ -153,31 +156,71 @@ function ResultCard({ resultData, userName }: { resultData: ResultData; userName
           <div className="bg-white/70 backdrop-blur rounded-xl p-6 mb-6 shadow-inner">
             <h3 className="font-bold text-lg mb-4 flex items-center text-red-600">
               <span className="text-2xl mr-2">📝</span>
-              错题解析
+              错题解析（{resultData.wrongAnswers.length} 题）
             </h3>
-            <div className="space-y-3">
-              {resultData.wrongAnswers.map((item, index) => (
-                <div key={index} className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
-                  <div className="font-semibold text-gray-800 mb-2">
-                    <span className="inline-block w-6 h-6 bg-red-500 text-white rounded-full text-center text-sm leading-6 mr-2">
+            <div className="space-y-6">
+              {resultData.wrongAnswers.map((item, index) => {
+                const correctLetters = item.correctAnswer.split(', ');
+                const userLetters = item.userAnswer.split(', ');
+                const isCheckbox = item.questionType === 'checkbox';
+                return (
+                <div key={index} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                  <div className="font-semibold text-gray-800 mb-3 whitespace-pre-line">
+                    <span className="inline-flex items-center justify-center w-7 h-7 bg-red-500 text-white rounded-full text-sm font-bold mr-2 flex-shrink-0">
                       {item.questionNumber}
                     </span>
                     {item.question}
+                    <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                      {isCheckbox ? '多选' : '单选'}
+                    </span>
                   </div>
-                  <div className="text-sm text-gray-700 ml-8 space-y-1">
-                    <div>
-                      <span className="font-semibold text-green-600">✓ 正确答案：</span>
-                      <span className="ml-2">{item.correctAnswer}</span>
+
+                  {item.options && item.options.length > 0 && (
+                    <div className="space-y-2 ml-9 mb-3">
+                      {item.options.map((opt) => {
+                        const letter = opt.split('.')[0];
+                        const isCorrect = correctLetters.includes(letter);
+                        const isUserPick = userLetters.includes(letter);
+                        const isWrongPick = isUserPick && !isCorrect;
+
+                        let optClass = 'border-gray-200 bg-white text-gray-600';
+                        let icon = '';
+                        if (isCorrect && isUserPick) {
+                          optClass = 'border-green-300 bg-green-50 text-green-800';
+                          icon = '✓';
+                        } else if (isCorrect) {
+                          optClass = 'border-green-300 bg-green-50 text-green-800';
+                          icon = '✓ 正确';
+                        } else if (isWrongPick) {
+                          optClass = 'border-red-300 bg-red-50 text-red-700';
+                          icon = '✗ 你的选择';
+                        }
+
+                        return (
+                          <div key={opt} className={`flex items-start gap-2 p-2.5 rounded-lg border ${optClass} text-sm`}>
+                            <span className="flex-1">{opt}</span>
+                            {icon && (
+                              <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                                isWrongPick ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                              }`}>
+                                {icon}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                    {item.explanation && (
-                      <div className="mt-2 text-gray-600 border-t border-red-100 pt-2">
-                        <span className="font-semibold text-gray-700">解析：</span>
-                        {item.explanation}
-                      </div>
-                    )}
-                  </div>
+                  )}
+
+                  {item.explanation && (
+                    <div className="ml-9 mt-2 text-sm text-gray-600 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                      <span className="font-semibold text-blue-700">解析：</span>
+                      {item.explanation}
+                    </div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

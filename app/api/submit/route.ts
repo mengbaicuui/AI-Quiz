@@ -9,16 +9,21 @@ interface SubmitRequest {
   }[];
 }
 
+interface WrongAnswer {
+  questionNumber: number;
+  question: string;
+  correctAnswer: string;
+  userAnswer: string;
+  options?: string[];
+  questionType: string;
+  explanation?: string;
+}
+
 interface SubmitResponse {
   score: number;
   totalPoints: number;
   resultText: string;
-  wrongAnswers: {
-    questionNumber: number;
-    question: string;
-    correctAnswer: string;
-    explanation?: string;
-  }[];
+  wrongAnswers: WrongAnswer[];
   shortAnswerFeedback: string;
   groupScores?: {
     groupId: string;
@@ -31,10 +36,10 @@ interface SubmitResponse {
 
 function calculateObjectiveScore(answers: SubmitRequest['answers']): {
   score: number;
-  wrongAnswers: { questionNumber: number; question: string; correctAnswer: string; explanation?: string; }[];
+  wrongAnswers: WrongAnswer[];
 } {
   let score = 0;
-  const wrongAnswers: { questionNumber: number; question: string; correctAnswer: string; explanation?: string; }[] = [];
+  const wrongAnswers: WrongAnswer[] = [];
 
   answers.forEach(({ questionIndex, answer }) => {
     const question = quizData[questionIndex];
@@ -58,6 +63,9 @@ function calculateObjectiveScore(answers: SubmitRequest['answers']): {
         questionNumber: questionIndex + 1,
         question: question.question,
         correctAnswer: Array.isArray(correctAnswer) ? correctAnswer.join(', ') : correctAnswer || '',
+        userAnswer: Array.isArray(answer) ? answer.join(', ') : answer || '未作答',
+        options: question.options,
+        questionType: question.type,
         explanation: question.explanation,
       });
     }
