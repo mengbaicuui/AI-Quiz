@@ -19,6 +19,12 @@ interface ResultData {
     explanation?: string;
   }[];
   shortAnswerFeedback: string;
+  shortAnswerDetails?: {
+    questionNumber: number;
+    question: string;
+    userAnswer: string;
+    referenceAnswer: string;
+  }[];
   groupScores?: {
     groupId: string;
     title: string;
@@ -225,13 +231,43 @@ function ResultCard({ resultData, userName }: { resultData: ResultData; userName
           </div>
         )}
 
-        {/* 参考答案 */}
-        {resultData.shortAnswerFeedback && (
-          <div className="bg-white/70 backdrop-blur rounded-xl p-4 shadow-inner">
-            <h3 className="font-bold text-sm mb-2 text-gray-700">参考答案</h3>
-            <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
-              {resultData.shortAnswerFeedback}
-            </p>
+        {/* 简答题回顾 */}
+        {resultData.shortAnswerDetails && resultData.shortAnswerDetails.length > 0 && (
+          <div className="bg-white/70 backdrop-blur rounded-xl p-6 shadow-inner">
+            <h3 className="font-bold text-lg mb-4 flex items-center text-green-700">
+              <span className="text-2xl mr-2">✍️</span>
+              简答题回顾（{resultData.shortAnswerDetails.length} 题）
+            </h3>
+            <div className="space-y-6">
+              {resultData.shortAnswerDetails.map((item, index) => (
+                <div key={index} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                  <div className="font-semibold text-gray-800 mb-3 whitespace-pre-line">
+                    <span className="inline-flex items-center justify-center w-7 h-7 bg-green-600 text-white rounded-full text-sm font-bold mr-2 flex-shrink-0">
+                      {item.questionNumber}
+                    </span>
+                    {item.question}
+                  </div>
+
+                  <div className="ml-9 space-y-3">
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <div className="text-xs font-semibold text-amber-700 mb-1">你的回答：</div>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                        {item.userAnswer || '未作答'}
+                      </p>
+                    </div>
+
+                    {item.referenceAnswer && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="text-xs font-semibold text-green-700 mb-1">参考答案：</div>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                          {item.referenceAnswer}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

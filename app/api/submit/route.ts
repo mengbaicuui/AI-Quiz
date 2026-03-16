@@ -19,12 +19,20 @@ interface WrongAnswer {
   explanation?: string;
 }
 
+interface ShortAnswerItem {
+  questionNumber: number;
+  question: string;
+  userAnswer: string;
+  referenceAnswer: string;
+}
+
 interface SubmitResponse {
   score: number;
   totalPoints: number;
   resultText: string;
   wrongAnswers: WrongAnswer[];
   shortAnswerFeedback: string;
+  shortAnswerDetails: ShortAnswerItem[];
   groupScores?: {
     groupId: string;
     title: string;
@@ -185,6 +193,7 @@ export async function POST(request: NextRequest) {
     // 简答题：展示参考答案，提交即给满分
     let totalShortAnswerScore = 0;
     const allShortAnswerFeedback: string[] = [];
+    const shortAnswerDetails: ShortAnswerItem[] = [];
 
     for (let groupIndex = 0; groupIndex < questionGroups.length; groupIndex++) {
       const group = questionGroups[groupIndex];
@@ -206,10 +215,16 @@ export async function POST(request: NextRequest) {
               groupScores[groupIndex].totalPoints
             );
           }
-          const ref = question.referenceAnswer?.trim();
+          const ref = question.referenceAnswer?.trim() || '';
           if (ref) {
             allShortAnswerFeedback.push(`【${group.title}】第${questionNum}题 参考答案：\n${ref}`);
           }
+          shortAnswerDetails.push({
+            questionNumber: questionNum,
+            question: question.question,
+            userAnswer: (answerData && typeof answerData.answer === 'string') ? answerData.answer : '未作答',
+            referenceAnswer: ref,
+          });
         }
       }
     }
@@ -223,6 +238,7 @@ export async function POST(request: NextRequest) {
       resultText: finalResultText,
       wrongAnswers,
       shortAnswerFeedback: allShortAnswerFeedback.join('\n\n'),
+      shortAnswerDetails,
       groupScores,
     };
 
