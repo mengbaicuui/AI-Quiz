@@ -7,6 +7,8 @@ export interface Question {
   points: number;
   /** 简答题的参考答案，提交后展示给学生 */
   referenceAnswer?: string;
+  /** 选择题的解析，错题时展示 */
+  explanation?: string;
 }
 
 export interface QuestionGroup {
@@ -39,6 +41,7 @@ const group1Questions: Question[] = [
     ],
     answer: 'B',
     points: 1,
+    explanation: '父文档检索用小 chunk 做向量匹配保证检索精度，命中后返回其所属大 chunk 作为上下文，兼顾检索精度与上下文完整性。',
   },
 
   // ── Q2：RAG Triad 诊断 ──
@@ -58,6 +61,7 @@ const group1Questions: Question[] = [
     ],
     answer: 'B',
     points: 1,
+    explanation: 'Groundedness 低说明答案无法在检索上下文中找到依据，属于生成层幻觉——模型未忠实基于上下文而是自行编造。',
   },
 
   // ── Q3：HyDE 原理 ──
@@ -74,6 +78,7 @@ const group1Questions: Question[] = [
     ],
     answer: 'B',
     points: 1,
+    explanation: 'HyDE 让 LLM 生成假设性答案文档，用其 embedding 去检索，使向量更接近知识库文档语义空间，缓解 query 与文档间的语义鸿沟。',
   },
 
   // ── Q4：混合检索架构设计（多选） ──
@@ -93,6 +98,7 @@ const group1Questions: Question[] = [
     ],
     answer: ['A', 'B', 'C'],
     points: 1,
+    explanation: 'BM25 负责精确术语匹配，向量检索负责语义，Reranker 对两路结果合并精排；D/E 与检索架构无直接关系。',
   },
 
   // ── Q5：GraphRAG 社区发现 ──
@@ -109,6 +115,7 @@ const group1Questions: Question[] = [
     ],
     answer: 'B',
     points: 1,
+    explanation: '社区发现将图划分为主题社区并生成摘要，检索时可通过社区级摘要获取该主题下的全局知识。',
   },
 
   // ── Q6：Chunking 策略选择 ──
@@ -128,6 +135,7 @@ const group1Questions: Question[] = [
     ],
     answer: 'C',
     points: 1,
+    explanation: '按条款边界切分保持条款完整，便于保留 metadata 与引用关系，满足法律文档的上下文完整性需求。',
   },
 
   // ── Q7：检索评估指标选择 ──
@@ -147,6 +155,7 @@ const group1Questions: Question[] = [
     ],
     answer: 'C',
     points: 1,
+    explanation: 'nDCG@K 综合考虑多个相关文档的排名位置，排名越靠前权重越高，符合多相关文档且重视排名的需求。',
   },
 
   // ── Q8：Self-RAG 机制 ──
@@ -162,6 +171,7 @@ const group1Questions: Question[] = [
     ],
     answer: 'B',
     points: 1,
+    explanation: 'Self-RAG 通过训练模型生成反思标记，自主判断是否需要检索、结果是否相关、生成是否有依据，实现按需检索与自我纠正。',
   },
 
   // ── Q9：企业 RAG 版本/权限/时效性（多选） ──
@@ -183,6 +193,7 @@ const group1Questions: Question[] = [
     ],
     answer: ['A', 'B', 'C', 'D'],
     points: 1,
+    explanation: '版本需时间标签；权限需 ACL 过滤；缓存需含用户/角色/版本维度；文档更新需增量同步。E/F 无法系统性解决。',
   },
 
   // ── Q10：Bad case 分层定位（多选） ──
@@ -200,6 +211,7 @@ const group1Questions: Question[] = [
     ],
     answer: ['A', 'C', 'D'],
     points: 1,
+    explanation: '先查检索层 TopK 是否含相关文档；有则问题在生成层（幻觉/prompt）；无则排查索引、chunk、知识库完整性。B/E 不是正确诊断思路。',
   },
 ];
 
@@ -212,7 +224,7 @@ const group2Questions: Question[] = [
   // ── Q11：Recall@K 与 Context Precision ──
   {
     type: 'textarea',
-    question: '在 RAG 系统的检索评估中，Recall@K（召回率）和 Context Precision（上下文精度）往往存在 trade-off 关系...',
+    question: '在 RAG 系统的检索评估中，Recall@K（召回率）和 Context Precision（上下文精度）往往存在 trade-off 关系。\n\n请解释：\n(1) 这两个指标分别衡量什么？\n(2) 为什么提高 K 值通常会提升 Recall 但降低 Precision？\n(3) 在实际 RAG 应用中，如何平衡两者？给出至少一种具体方法。',
     id: 'shortAnswer_recall_precision',
     points: 2,
     referenceAnswer:
@@ -224,7 +236,7 @@ const group2Questions: Question[] = [
   // ── Q12：Bad case 分层定位 ──
   {
     type: 'textarea',
-    question: '你负责的 RAG 系统收到一个 bad case：用户问"公司差旅报销的标准是什么？"，系统回答了一段看似合理但完全错误的内容...',
+    question: '你负责的 RAG 系统收到一个 bad case：用户问"公司差旅报销的标准是什么？"，系统回答了一段看似合理但完全错误的内容。\n\n请描述你完整的分层诊断流程：从哪里开始检查？每一层检查什么？不同检查结果分别指向什么问题？',
     id: 'shortAnswer_bad_case',
     points: 2,
     referenceAnswer:
@@ -238,7 +250,7 @@ const group2Questions: Question[] = [
   // ── Q13：GraphRAG vs LightRAG ──
   {
     type: 'textarea',
-    question: 'GraphRAG（Microsoft）和 LightRAG 的本质区别...',
+    question: 'GraphRAG（Microsoft）和 LightRAG 都是基于知识图谱的 RAG 方案，但它们在索引和检索策略上有本质区别。\n\n请回答：\n(1) GraphRAG 为什么需要做社区发现（Community Detection）？\n(2) LightRAG 为什么可以不需要做社区发现？它用什么替代方案？\n(3) 在什么场景下你会选择 GraphRAG 而不是 LightRAG？',
     id: 'shortAnswer_graph_rag',
     points: 2,
     referenceAnswer:
@@ -250,7 +262,7 @@ const group2Questions: Question[] = [
   // ── Q14：HyDE 的优势与局限 ──
   {
     type: 'textarea',
-    question: 'HyDE（Hypothetical Document Embeddings）分析...',
+    question: 'HyDE（Hypothetical Document Embeddings）是一种通过生成假设文档来改善检索质量的技术。\n\n请分析：\n(1) HyDE 解决了传统向量检索的什么核心问题？\n(2) HyDE 在什么场景下效果最好？什么场景下效果不好甚至有害？\n(3) HyDE 相比 Query Rewrite 有什么优劣势？',
     id: 'shortAnswer_hyde',
     points: 2,
     referenceAnswer:
@@ -262,7 +274,7 @@ const group2Questions: Question[] = [
   // ── Q15：Cross-Encoder Reranking ──
   {
     type: 'textarea',
-    question: 'Cross-Encoder 重排序阶段分析...',
+    question: '很多 RAG 系统在向量检索（Bi-Encoder）之后加入 Cross-Encoder 重排序（Reranking）阶段。\n\n请解释：\n(1) Cross-Encoder 与 Bi-Encoder 在架构上有什么区别？为什么 Cross-Encoder 通常更准确？\n(2) 为什么不直接用 Cross-Encoder 做第一阶段检索？\n(3) 在 RAG 流水线中，Reranking 的 TopN → TopK 配置对最终效果有什么影响？',
     id: 'shortAnswer_reranking',
     points: 2,
     referenceAnswer:
@@ -274,7 +286,7 @@ const group2Questions: Question[] = [
   // ── Q16：RAG Triad 协同诊断 ──
   {
     type: 'textarea',
-    question: 'RAG Triad 三种异常模式分析...',
+    question: 'RAG Triad 由三个指标组成：Context Relevance（上下文相关性）、Groundedness（忠实度）和 Answer Relevance（答案相关性）。\n\n请针对以下三种异常模式，分析各自最可能的根因，并给出对应的优化方向：\n(1) Context Relevance 低，Groundedness 高，Answer Relevance 低\n(2) Context Relevance 高，Groundedness 低，Answer Relevance 高\n(3) Context Relevance 高，Groundedness 高，Answer Relevance 低',
     id: 'shortAnswer_rag_triad',
     points: 2,
     referenceAnswer:
@@ -286,7 +298,7 @@ const group2Questions: Question[] = [
   // ── Q17：大 Context Window 能否替代 RAG ──
   {
     type: 'textarea',
-    question: '大 Context Window  vs RAG...',
+    question: '随着 LLM 支持的 context window 越来越大（如 Gemini 支持 1M tokens），有人认为可以直接将所有文档塞入上下文，不再需要 RAG 检索。\n\n请分析：\n(1) 大 context window 在哪些场景下确实可以替代 RAG？\n(2) 即使有超长上下文，RAG 仍然必要的理由有哪些？（至少给出三个）\n(3) "Lost in the Middle" 现象是什么？它如何影响超长上下文的实际效果？',
     id: 'shortAnswer_context_window',
     points: 2,
     referenceAnswer:
@@ -298,7 +310,7 @@ const group2Questions: Question[] = [
   // ── Q18：Corrective RAG (CRAG) 工作流 ──
   {
     type: 'textarea',
-    question: 'Corrective RAG（CRAG）描述...',
+    question: 'Corrective RAG（CRAG）在标准 RAG 流程中加入了"检索结果评估与纠正"机制。\n\n请描述：\n(1) CRAG 的完整工作流程（从用户查询到最终回答）\n(2) CRAG 中的检索评估器（Retrieval Evaluator）如何判断检索结果的质量？判断结果有哪几种类别？\n(3) 当检索结果被判定为"不相关"时，CRAG 会采取什么补救措施？',
     id: 'shortAnswer_crag',
     points: 2,
     referenceAnswer:
@@ -310,7 +322,7 @@ const group2Questions: Question[] = [
   // ── Q19：Embedding 模型选择 ──
   {
     type: 'textarea',
-    question: 'Embedding 模型选择分析...',
+    question: '选择合适的 Embedding 模型对 RAG 系统的检索质量至关重要。\n\n请分析：\n(1) 评估 Embedding 模型时应关注哪些关键维度？（至少列出四个）\n(2) 通用 Embedding 模型（如 OpenAI text-embedding-3）与领域微调 Embedding 模型各适用于什么场景？\n(3) 如果更换了 Embedding 模型，对现有 RAG 系统有什么影响？需要注意什么？',
     id: 'shortAnswer_embedding',
     points: 2,
     referenceAnswer:
@@ -322,7 +334,7 @@ const group2Questions: Question[] = [
   // ── Q20：Query 歧义处理 ──
   {
     type: 'textarea',
-    question: 'Query 歧义处理策略...',
+    question: '在实际 RAG 系统中，用户查询往往存在歧义。例如用户问"苹果的最新消息"，可能指 Apple 公司也可能指水果。\n\n请回答：\n(1) RAG 系统中常见的 query 歧义类型有哪些？（至少列出三种）\n(2) 针对歧义 query，有哪些处理策略？（至少说明两种，并分析各自的优缺点）\n(3) 在什么情况下，RAG 系统应该主动向用户追问澄清，而不是猜测用户意图？',
     id: 'shortAnswer_query_ambiguity',
     points: 2,
     referenceAnswer:

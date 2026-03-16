@@ -10,8 +10,10 @@ interface ResultData {
   totalPoints: number;
   resultText: string;
   wrongAnswers: {
+    questionNumber: number;
     question: string;
     correctAnswer: string;
+    explanation?: string;
   }[];
   shortAnswerFeedback: string;
   groupScores?: {
@@ -158,13 +160,21 @@ function ResultCard({ resultData, userName }: { resultData: ResultData; userName
                 <div key={index} className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
                   <div className="font-semibold text-gray-800 mb-2">
                     <span className="inline-block w-6 h-6 bg-red-500 text-white rounded-full text-center text-sm leading-6 mr-2">
-                      {index + 1}
+                      {item.questionNumber}
                     </span>
                     {item.question}
                   </div>
-                  <div className="text-sm text-gray-700 ml-8">
-                    <span className="font-semibold text-green-600">✓ 正确答案：</span>
-                    <span className="ml-2">{item.correctAnswer}</span>
+                  <div className="text-sm text-gray-700 ml-8 space-y-1">
+                    <div>
+                      <span className="font-semibold text-green-600">✓ 正确答案：</span>
+                      <span className="ml-2">{item.correctAnswer}</span>
+                    </div>
+                    {item.explanation && (
+                      <div className="mt-2 text-gray-600 border-t border-red-100 pt-2">
+                        <span className="font-semibold text-gray-700">解析：</span>
+                        {item.explanation}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -172,18 +182,13 @@ function ResultCard({ resultData, userName }: { resultData: ResultData; userName
           </div>
         )}
 
-        {/* AI反馈 */}
+        {/* 参考答案 */}
         {resultData.shortAnswerFeedback && (
-          <div className="bg-white/70 backdrop-blur rounded-xl p-6 shadow-inner">
-            <h3 className="font-bold text-lg mb-4 flex items-center text-blue-600">
-              <span className="text-2xl mr-2">🤖</span>
-              AI 智能反馈
-            </h3>
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {resultData.shortAnswerFeedback}
-              </p>
-            </div>
+          <div className="bg-white/70 backdrop-blur rounded-xl p-4 shadow-inner">
+            <h3 className="font-bold text-sm mb-2 text-gray-700">参考答案</h3>
+            <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
+              {resultData.shortAnswerFeedback}
+            </p>
           </div>
         )}
       </div>
@@ -296,11 +301,6 @@ export default function QuizClient() {
 
   // 下一页
   const goToNextPage = () => {
-    if (!isCurrentPageComplete()) {
-      alert('请完成当前页面的所有题目后再继续');
-      return;
-    }
-
     if (currentPage < questionGroups.length - 1) {
       setCurrentPage(currentPage + 1);
       // 滚动到顶部
@@ -324,13 +324,6 @@ export default function QuizClient() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 验证所有页面的题目都已完成
-    if (!isCurrentPageComplete()) {
-      alert('请完成当前页面的所有题目');
-      return;
-    }
-
     setQuizState('submitting');
     
     // 格式化答案以发送到后端
@@ -398,9 +391,9 @@ export default function QuizClient() {
 
         {/* 提示信息 */}
         <div className="mt-8 text-sm text-gray-500 space-y-2">
-          <p>💡 共 9 道题目，包含单选、多选和简答题</p>
+          <p>💡 共 20 道题目，包含单选、多选和简答题</p>
           <p>⏱️ 预计用时 10-15 分钟</p>
-          <p>🤖 AI 将为你的简答题提供专业反馈</p>
+          <p>✍️ 提交后可查看参考答案</p>
         </div>
       </div>
     );
@@ -485,7 +478,7 @@ export default function QuizClient() {
                 {localIndex + 1}
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-gray-800 text-lg leading-relaxed">
+                <p className="font-semibold text-gray-800 text-lg leading-relaxed whitespace-pre-line">
                   {q.question}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
@@ -515,7 +508,6 @@ export default function QuizClient() {
                       type="radio"
                       name={`q${globalIndex}`}
                       value={opt.split('.')[0]}
-                      required
                       onChange={(e) => handleInputChange(globalIndex, e.target.value, false)}
                       className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
                     />
@@ -549,8 +541,7 @@ export default function QuizClient() {
               <div className="ml-11">
                 <textarea
                   id={q.id}
-                  required
-                  placeholder="请详细描述你的答案，AI 将为你提供专业反馈..."
+                  placeholder="请填写你的答案..."
                   className="w-full p-4 border-2 border-gray-200 rounded-lg min-h-[150px] focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all outline-none resize-none"
                   onChange={(e) => handleInputChange(globalIndex, e.target.value, false)}
                 ></textarea>
@@ -589,7 +580,7 @@ export default function QuizClient() {
             {quizState === 'submitting' ? (
               <>
                 <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>AI 正在智能评估中...</span>
+                <span>正在提交结果...</span>
               </>
             ) : (
               <>
